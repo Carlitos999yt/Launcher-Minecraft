@@ -18,18 +18,11 @@ def ensure_branch_clean(branch_name):
     run_git(["checkout", "main"])
     run_git(["pull", "origin", "main"])
     
-    # Comprobar si existe localmente o remotamente
-    branches_res = run_git(["branch", "-a"])
-    exists_local = branch_name in branches_res.stdout
-    exists_remote = f"remotes/origin/{branch_name}" in branches_res.stdout
+    # Borrar la rama local si existe para evitar conflictos de historial
+    run_git(["branch", "-D", branch_name])
     
-    if exists_local:
-        run_git(["checkout", branch_name])
-        run_git(["pull", "origin", branch_name])
-    elif exists_remote:
-        run_git(["checkout", "-b", branch_name, f"origin/{branch_name}"])
-    else:
-        run_git(["checkout", "-b", branch_name])
+    # Crear rama huérfana limpia para no arrastrar historial ni archivos viejos
+    run_git(["checkout", "--orphan", branch_name])
 
 def load_json_file(branch, filename, default_val):
     # Guardamos la rama actual para regresar
@@ -227,6 +220,11 @@ def import_mrpack(mrpack_path, modpack_id):
                 file_path = os.path.join(dest_mods_dir, file)
                 zipf.write(file_path, arcname=file)
                 
+        # Si mods.zip supera los 50MB, lo eliminamos y preferimos descarga individual de mods
+        if os.path.exists(mods_zip_path) and os.path.getsize(mods_zip_path) > 50 * 1024 * 1024:
+            print(f"mods.zip es muy grande ({os.path.getsize(mods_zip_path)/(1024*1024):.2f}MB). Se elimina para evitar límites de GitHub; el launcher descargará mods individuales.")
+            os.remove(mods_zip_path)
+                
         # Crear config-modpack.json
         config_data = {
             "name": modpack_name,
@@ -283,7 +281,7 @@ def import_mrpack(mrpack_path, modpack_id):
         print(f"Guardando cambios en la rama '{modpack_id}' de GitHub...")
         run_git(["add", "."])
         run_git(["commit", "-m", f"feat: import modpack files for {modpack_id}"])
-        push_res = run_git(["push", "origin", modpack_id])
+        push_res = run_git(["push", "-f", "origin", modpack_id])
         print(push_res.stdout or push_res.stderr)
         
         # Volver a main

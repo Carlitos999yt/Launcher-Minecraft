@@ -33,9 +33,9 @@ namespace MiLauncher.launcher.minecraft
         private static readonly SemaphoreSlim _downloadSemaphore = new SemaphoreSlim(10); // Límite de 10 descargas paralelas
 
         // Ajustes por defecto de los repositorios
-        public static string Username { get; set; } = "VERONICA-MINECRAFT";
-        public static string ModpacksRepo { get; set; } = "modpacks";
-        public static string ReleasesRepo { get; set; } = "launcher-releases";
+        public static string Username { get; set; } = "Carlitos999yt";
+        public static string ModpacksRepo { get; set; } = "Modpack-Servers";
+        public static string ReleasesRepo { get; set; } = "Launcher-Minecraft";
         
         // Token de acceso personal si la whitelist/repositorio es privado
         public static string PersonalAccessToken { get; set; } = "";

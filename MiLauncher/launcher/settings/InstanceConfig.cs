@@ -12,6 +12,7 @@ namespace MiLauncher.launcher.settings
         public string GameVersion { get; set; } = "1.20.1";
         public string ModLoader { get; set; } = "Vanilla"; // Vanilla, Fabric, Forge
         public string LoaderVersion { get; set; } = "";
+        public string Version { get; set; } = "1.0.0";
         
         // Java & RAM
         public string JavaPath { get; set; } = "";

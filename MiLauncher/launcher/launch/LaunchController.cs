@@ -185,23 +185,22 @@ namespace MiLauncher.launcher.launch
                 launchOption.ServerPort = globalSettings.ServerPort;
             }
 
-            // INYECCIÓN DE MOD DE SKINS
+            // INYECCIÓN DE CONFIGURACIÓN DE MOD DE SKINS
             try
             {
-                string originalModPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "CustomSkinLoader_Fabric-14.28.jar");
-                if (!File.Exists(originalModPath))
+                string modsDir = Path.Combine(instancePath, "mods");
+                bool hasCsl = false;
+                if (Directory.Exists(modsDir))
                 {
-                    // Intentar otra ruta
-                    originalModPath = @"C:\Users\VERONICA\Documents\universidad1\launcher minecraft\CustomSkinLoader_Fabric-14.28.jar";
+                    foreach (var file in Directory.GetFiles(modsDir, "*CustomSkinLoader*.jar"))
+                    {
+                        hasCsl = true;
+                        break;
+                    }
                 }
 
-                if (File.Exists(originalModPath))
+                if (hasCsl)
                 {
-                    string modsDir = Path.Combine(instancePath, "mods");
-                    Directory.CreateDirectory(modsDir);
-                    string destModPath = Path.Combine(modsDir, "CustomSkinLoader_Fabric-14.28.jar");
-                    File.Copy(originalModPath, destModPath, true);
-
                     string cslConfigDir = Path.Combine(instancePath, "CustomSkinLoader");
                     Directory.CreateDirectory(cslConfigDir);
                     string cslConfigPath = Path.Combine(cslConfigDir, "CustomSkinLoader.json");

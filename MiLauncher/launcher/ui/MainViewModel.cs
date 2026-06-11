@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Runtime.InteropServices;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MiLauncher.launcher.ui
 {
@@ -548,7 +549,149 @@ namespace MiLauncher.launcher.ui
                     return;
                 }
 
+                // 1. Verificación rápida de whitelist/autorización y actualización
+                if (WhitelistData != null)
+                {
+                    PlayButtonText = "VERIFICANDO...";
+                    PlayButtonColor = "#A0A0A0"; // Gris
+                    PlayButtonStatusText = "Verificando whitelist de jugadores...";
+                    PlayButtonProgress = 20;
+
+                    bool authorized = false;
+                    try
+                    {
+                        // Verificación rápida con 2 segundos de timeout
+                        var authTask = MiLauncher.launcher.minecraft.GitHubSyncService.IsPlayerAuthorizedAsync(WhitelistData.Id);
+                        var delayTask = Task.Delay(2000);
+                        var completedTask = await Task.WhenAny(authTask, delayTask);
+                        if (completedTask == authTask)
+                        {
+                            authorized = await authTask;
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show("Tiempo de espera agotado al verificar la whitelist. Por favor, comprueba tu conexión a internet.", "Error de Whitelist", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                            PlayButtonText = "JUGAR";
+                            PlayButtonColor = "#3C8527";
+                            PlayButtonStatusText = "Error: Tiempo de espera agotado al verificar whitelist.";
+                            PlayButtonProgress = 0;
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show("Error al verificar la whitelist: " + ex.Message, "Error de Whitelist", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                        PlayButtonText = "JUGAR";
+                        PlayButtonColor = "#3C8527";
+                        PlayButtonStatusText = "Error de conexión al verificar whitelist.";
+                        PlayButtonProgress = 0;
+                        return;
+                    }
+
+                    if (!authorized)
+                    {
+                        System.Windows.MessageBox.Show("No estás registrado en la whitelist para este modpack. Contacta con el administrador.", "Acceso Denegado", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                        PlayButtonText = "JUGAR";
+                        PlayButtonColor = "#3C8527";
+                        PlayButtonStatusText = "Acceso Denegado: No estás en la whitelist.";
+                        PlayButtonProgress = 0;
+                        return;
+                    }
+
+                    // 2. Comprobar actualización obligatoria
+                    PlayButtonStatusText = "Comprobando actualizaciones del modpack...";
+                    PlayButtonProgress = 50;
+
+                    string remoteVersion = WhitelistData.Version;
+                    try
+                    {
+                        var wlTask = MiLauncher.launcher.minecraft.GitHubSyncService.GetWhitelistAsync();
+                        var delayTask = Task.Delay(2000);
+                        var completedTask = await Task.WhenAny(wlTask, delayTask);
+                        if (completedTask == wlTask)
+                        {
+                            var remoteWhitelist = await wlTask;
+                            var match = remoteWhitelist.FirstOrDefault(m => string.Equals(m.Id, WhitelistData.Id, StringComparison.OrdinalIgnoreCase));
+                            if (match != null)
+                            {
+                                remoteVersion = match.Version;
+                                // Sincronizar cache local para mantenerla al día
+                                string settingsFolder = MiLauncher.launcher.settings.SettingsManager.LoadSettings().InstancesFolder;
+                                string cachePath = System.IO.Path.Combine(settingsFolder, "whitelist_cache.json");
+                                string json = System.Text.Json.JsonSerializer.Serialize(remoteWhitelist, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                                System.IO.File.WriteAllText(cachePath, json);
+                            }
+                        }
+                    }
+                    catch { }
+
+                    string localVersion = "0.0.0";
+                    var localConfig = MiLauncher.launcher.settings.InstanceConfig.Load(_instancePath);
+                    if (localConfig != null && !string.IsNullOrEmpty(localConfig.Version))
+                    {
+                        localVersion = localConfig.Version;
+                    }
+
+                    if (localVersion != remoteVersion)
+                    {
+                        System.Windows.MessageBox.Show($"Hay una nueva versión obligatoria disponible ({remoteVersion}). El modpack se actualizará automáticamente.", "Actualización Obligatoria", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+
+                        IsDownloading = true;
+                        PlayButtonText = "ACTUALIZANDO...";
+                        PlayButtonColor = "#A0A0A0"; // Gris
+
+                        try
+                        {
+                            // Actualizar la versión en nuestro objeto temporal
+                            WhitelistData.Version = remoteVersion;
+
+                            await System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                await MiLauncher.launcher.minecraft.GitHubSyncService.DownloadModpackAsync(WhitelistData, _instancePath, (status, progress) =>
+                                {
+                                    SafeDispatcher.Invoke(() =>
+                                    {
+                                        PlayButtonStatusText = status;
+                                        PlayButtonProgress = progress;
+                                    });
+                                });
+                            });
+
+                            IsInstalled = true;
+                            IsDownloading = false;
+                            PlayButtonText = "JUGAR";
+                            PlayButtonColor = "#3C8527"; // Verde
+                            PlayButtonStatusText = "¡Actualización completada! Listo para jugar.";
+                            PlayButtonProgress = 0;
+
+                            RefreshLocalAssets();
+                            LoadMetadata();
+
+                            // Recargar la lista principal en segundo plano
+                            SafeDispatcher.Invoke(() =>
+                            {
+                                if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+                                {
+                                    mainVm.LoadInstances();
+                                }
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            IsDownloading = false;
+                            PlayButtonText = "JUGAR";
+                            PlayButtonColor = "#3C8527";
+                            PlayButtonStatusText = "Error en actualización: " + ex.Message;
+                            PlayButtonProgress = 0;
+                            System.Windows.MessageBox.Show($"Ocurrió un error al actualizar el modpack: {ex.Message}", "Error de Actualización", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                        }
+                        return;
+                    }
+                }
+
                 _isGameRunning = true;
+                PlayButtonProgress = 0;
+                PlayButtonStatusText = "";
                 PlayButtonText = "INICIANDO...";
                 PlayButtonColor = "#A0A0A0"; // Gris
 
@@ -614,6 +757,7 @@ namespace MiLauncher.launcher.ui
                 {
                     SafeDispatcher.Invoke(() => 
                     {
+                        if (!_isGameRunning) return;
                         _isGameRunning = false;
                         PlayButtonText = "JUGAR";
                         PlayButtonColor = "#3C8527"; // Volver a Verde

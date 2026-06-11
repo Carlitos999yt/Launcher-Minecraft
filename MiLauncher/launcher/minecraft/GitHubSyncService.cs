@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 using MiLauncher.launcher.tools;
 
 namespace MiLauncher.launcher.minecraft
@@ -159,6 +160,7 @@ namespace MiLauncher.launcher.minecraft
                     var localConfig = new settings.InstanceConfig
                     {
                         Name = modpack.Name,
+                        Version = root.TryGetProperty("version", out var v) ? v.GetString() ?? modpack.Version : modpack.Version,
                         GameVersion = root.TryGetProperty("gameVersion", out var gv) ? gv.GetString() ?? modpack.GameVersion : modpack.GameVersion,
                         ModLoader = root.TryGetProperty("modLoader", out var ml) ? ml.GetString() ?? modpack.ModLoader : modpack.ModLoader,
                         LoaderVersion = root.TryGetProperty("loaderVersion", out var lv) ? lv.GetString() ?? modpack.LoaderVersion : modpack.LoaderVersion,
@@ -177,6 +179,7 @@ namespace MiLauncher.launcher.minecraft
                     var localConfig = new settings.InstanceConfig
                     {
                         Name = modpack.Name,
+                        Version = modpack.Version,
                         GameVersion = modpack.GameVersion,
                         ModLoader = modpack.ModLoader,
                         LoaderVersion = modpack.LoaderVersion
@@ -333,11 +336,75 @@ namespace MiLauncher.launcher.minecraft
                         await Task.WhenAll(downloadTasks);
                         progressCallback("Mods individuales descargados con éxito.", 100);
                     }
-                    else
+                }
+
+                // 4. Descargar mods externos (> 40MB) especificados en external_mods.json
+                progressCallback("Comprobando existencia de mods externos (>40MB)...", 90);
+                string extModsUrl = $"https://raw.githubusercontent.com/{Username}/{ModpacksRepo}/{modpack.Branch}/external_mods.json";
+                if (!string.IsNullOrEmpty(PersonalAccessToken))
+                {
+                    extModsUrl = $"https://api.github.com/repos/{Username}/{ModpacksRepo}/contents/external_mods.json?ref={modpack.Branch}";
+                }
+
+                string extModsJson = await DownloadStringContentAsync(extModsUrl);
+                if (!string.IsNullOrEmpty(extModsJson))
+                {
+                    try
                     {
-                        progressCallback("No se encontraron mods en esta rama del modpack.", 100);
+                        using var doc = JsonDocument.Parse(extModsJson);
+                        if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                        {
+                            string modsFolder = Path.Combine(targetDir, "mods");
+                            Directory.CreateDirectory(modsFolder);
+
+                            var array = doc.RootElement;
+                            int totalExt = array.GetArrayLength();
+                            int extDone = 0;
+                            Logger.Info($"Descargando {totalExt} mods externos > 40MB...");
+
+                            var extTasks = new List<Task>();
+                            foreach (var item in array.EnumerateArray())
+                            {
+                                string filename = item.TryGetProperty("filename", out var fn) ? fn.GetString() ?? "" : "";
+                                string url = item.TryGetProperty("url", out var u) ? u.GetString() ?? "" : "";
+
+                                if (!string.IsNullOrEmpty(filename) && !string.IsNullOrEmpty(url))
+                                {
+                                    string destPath = Path.Combine(modsFolder, filename);
+                                    extTasks.Add(Task.Run(async () =>
+                                    {
+                                        await _downloadSemaphore.WaitAsync();
+                                        try
+                                        {
+                                            Logger.Info($"Descargando mod externo: {filename}");
+                                            await DownloadBinaryFileAsync(url, destPath);
+                                        }
+                                        finally
+                                        {
+                                            _downloadSemaphore.Release();
+                                            lock (extModsUrl)
+                                            {
+                                                extDone++;
+                                                double perc = 90.0 + ((double)extDone / totalExt) * 8.0;
+                                                progressCallback($"Descargando mods grandes ({extDone}/{totalExt})...", perc);
+                                            }
+                                        }
+                                    }));
+                                }
+                            }
+                            await Task.WhenAll(extTasks);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"Error al descargar mods externos: {ex.Message}");
                     }
                 }
+
+                // 5. Instalar CustomSkinLoader dinámicamente
+                progressCallback("Instalando mod de skins CustomSkinLoader...", 98);
+                await InstallCustomSkinLoaderAsync(targetDir, modpack.GameVersion, modpack.ModLoader);
+                progressCallback("Instalación completada con éxito.", 100);
             }
             catch (Exception ex)
             {
@@ -396,5 +463,205 @@ namespace MiLauncher.launcher.minecraft
             catch { }
             return false;
         }
+
+        public static async Task<string> GetPlayersJsonAsync()
+        {
+            string url = $"https://raw.githubusercontent.com/{Username}/{ModpacksRepo}/whitelist/players.json";
+            if (!string.IsNullOrEmpty(PersonalAccessToken))
+            {
+                url = $"https://api.github.com/repos/{Username}/{ModpacksRepo}/contents/players.json?ref=whitelist";
+            }
+            return await DownloadStringContentAsync(url);
+        }
+
+        public static async Task<bool> IsPlayerAuthorizedAsync(string modpackId)
+        {
+            try
+            {
+                string json = await GetPlayersJsonAsync();
+                if (string.IsNullOrEmpty(json))
+                {
+                    Logger.Error("No se pudo descargar la whitelist de jugadores (players.json) o está vacía.");
+                    return false;
+                }
+                var players = JsonSerializer.Deserialize<List<PlayerWhitelistEntry>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (players == null) return false;
+
+                string secureId = settings.SettingsManager.GetOrCreateOfflineID();
+                string selectedAccount = settings.SettingsManager.LoadSettings().SelectedAccount;
+
+                foreach (var p in players)
+                {
+                    bool isOfflineMatch = string.Equals(p.Id, secureId, StringComparison.OrdinalIgnoreCase) && 
+                                          string.Equals(p.MinecraftName, selectedAccount, StringComparison.OrdinalIgnoreCase);
+                    bool isPremiumMatch = string.Equals(p.Id, selectedAccount, StringComparison.OrdinalIgnoreCase);
+
+                    if (isOfflineMatch || isPremiumMatch)
+                    {
+                        if (p.Modpacks != null)
+                        {
+                            foreach (var mp in p.Modpacks)
+                            {
+                                if (string.Equals(mp, modpackId, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error al verificar la whitelist del jugador: {ex.Message}");
+            }
+            return false;
+        }
+
+        public static async Task InstallCustomSkinLoaderAsync(string instancePath, string gameVersion, string modLoader)
+        {
+            string modsDir = Path.Combine(instancePath, "mods");
+            if (Directory.Exists(modsDir))
+            {
+                foreach (var file in Directory.GetFiles(modsDir, "*CustomSkinLoader*.jar"))
+                {
+                    try { File.Delete(file); } catch { }
+                }
+            }
+            else
+            {
+                Directory.CreateDirectory(modsDir);
+            }
+
+            try
+            {
+                string url = "https://api.modrinth.com/v2/project/custom-skin-loader/version";
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("User-Agent", "MiLauncher-Client/1.0");
+                using var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Logger.Error($"Modrinth API returned status {response.StatusCode} for CustomSkinLoader");
+                    return;
+                }
+
+                string json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind != JsonValueKind.Array) return;
+
+                string targetLoader = modLoader.ToLowerInvariant();
+                if (targetLoader == "vanilla")
+                {
+                    Logger.Info("Modpack es Vanilla, omitiendo CustomSkinLoader.");
+                    return;
+                }
+
+                JsonElement? bestVersion = null;
+                JsonElement? bestFile = null;
+
+                foreach (var ver in doc.RootElement.EnumerateArray())
+                {
+                    bool loaderMatch = false;
+                    if (ver.TryGetProperty("loaders", out var loadersEl) && loadersEl.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var l in loadersEl.EnumerateArray())
+                        {
+                            if (string.Equals(l.GetString(), targetLoader, StringComparison.OrdinalIgnoreCase))
+                            {
+                                loaderMatch = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!loaderMatch) continue;
+
+                    bool gameVersionMatch = false;
+                    if (ver.TryGetProperty("game_versions", out var gvsEl) && gvsEl.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var gv in gvsEl.EnumerateArray())
+                        {
+                            if (string.Equals(gv.GetString(), gameVersion, StringComparison.OrdinalIgnoreCase))
+                            {
+                                gameVersionMatch = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!gameVersionMatch) continue;
+
+                    if (ver.TryGetProperty("files", out var filesEl) && filesEl.ValueKind == JsonValueKind.Array && filesEl.GetArrayLength() > 0)
+                    {
+                        JsonElement selectedFile = filesEl[0];
+                        foreach (var f in filesEl.EnumerateArray())
+                        {
+                            if (f.TryGetProperty("primary", out var prim) && prim.GetBoolean())
+                            {
+                                selectedFile = f;
+                                break;
+                            }
+                        }
+                        bestVersion = ver;
+                        bestFile = selectedFile;
+                        break;
+                    }
+                }
+
+                if (bestFile != null && bestFile.Value.TryGetProperty("url", out var fileUrlEl) && bestFile.Value.TryGetProperty("filename", out var filenameEl))
+                {
+                    string fileUrl = fileUrlEl.GetString() ?? "";
+                    string filename = filenameEl.GetString() ?? "";
+                    if (!string.IsNullOrEmpty(fileUrl) && !string.IsNullOrEmpty(filename))
+                    {
+                        string cacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MiLauncher", "cache", "mods");
+                        Directory.CreateDirectory(cacheDir);
+                        string cacheFilePath = Path.Combine(cacheDir, filename);
+
+                        if (!File.Exists(cacheFilePath))
+                        {
+                            Logger.Info($"Descargando CustomSkinLoader desde Modrinth a caché: {filename}");
+                            using var req = new HttpRequestMessage(HttpMethod.Get, fileUrl);
+                            req.Headers.Add("User-Agent", "MiLauncher-Client/1.0");
+                            using var res = await _httpClient.SendAsync(req);
+                            if (res.IsSuccessStatusCode)
+                            {
+                                using var fs = new FileStream(cacheFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                                await res.Content.CopyToAsync(fs);
+                            }
+                        }
+
+                        if (File.Exists(cacheFilePath))
+                        {
+                            string destPath = Path.Combine(modsDir, filename);
+                            File.Copy(cacheFilePath, destPath, true);
+                            Logger.Info($"CustomSkinLoader {filename} instalado en la instancia.");
+                            return;
+                        }
+                    }
+                }
+
+                ui.SafeDispatcher.Invoke(() =>
+                {
+                    System.Windows.MessageBox.Show("Esta versión no soporta las skins.", "CustomSkinLoader", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error buscando/instalando CustomSkinLoader dinámicamente: {ex.Message}");
+            }
+        }
+    }
+
+    public class PlayerWhitelistEntry
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public string Id { get; set; } = "";
+        [System.Text.Json.Serialization.JsonPropertyName("minecraft_name")]
+        public string MinecraftName { get; set; } = "";
+        [System.Text.Json.Serialization.JsonPropertyName("discord_name")]
+        public string DiscordName { get; set; } = "";
+        [System.Text.Json.Serialization.JsonPropertyName("modpacks")]
+        public List<string> Modpacks { get; set; } = new List<string>();
     }
 }

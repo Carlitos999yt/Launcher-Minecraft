@@ -1,0 +1,234 @@
+<Window x:Class="MiLauncher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewModels="clr-namespace:MiLauncher.launcher.ui"
+        xmlns:views="clr-namespace:MiLauncher.launcher.ui"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="MiLauncher" Height="760" Width="1300"
+        MinWidth="1300" MinHeight="760"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBrush}"
+        TextElement.Foreground="{DynamicResource TextBrush}"
+        FontFamily="Segoe UI">
+    
+    <Window.DataContext>
+        <viewModels:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+
+        
+        <!-- Enrutador de Vistas MVVM -->
+        <DataTemplate DataType="{x:Type viewModels:HomeViewModel}">
+            <views:HomeView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:ModpackDetailsViewModel}">
+            <views:ModpackDetailsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:SkinsViewModel}">
+            <views:SkinsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:GeneralSettingsViewModel}">
+            <views:GeneralSettingsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModels:ConsoleViewModel}">
+            <views:ConsoleView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/> <!-- Columna de Navegación -->
+            <ColumnDefinition Width="*"/> <!-- Contenido Principal -->
+        </Grid.ColumnDefinitions>
+
+        <!-- COLUMNA 0: Menú Lateral Izquierdo (Navegación, Modpacks y Perfil) -->
+        <Border Grid.Column="0" Width="175" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0"
+                Visibility="{Binding IsMenuVisible, Converter={StaticResource BoolToVis}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Home -->
+                    <RowDefinition Height="*"/> <!-- Modpacks -->
+                    <RowDefinition Height="Auto"/> <!-- Consola -->
+                    <RowDefinition Height="Auto"/> <!-- Ajustes -->
+                    <RowDefinition Height="Auto"/> <!-- Perfil -->
+                    <RowDefinition Height="Auto"/> <!-- Créditos -->
+                </Grid.RowDefinitions>
+
+                <!-- Botón INICIO -->
+                <Button Grid.Row="0" Command="{Binding NavigateHomeCommand}" 
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                        Margin="0" Padding="0" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="Transparent" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="15,15">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="HomeOutline" Width="24" Height="24" Foreground="{DynamicResource TextBrush}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="INICIO" Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#33FFFFFF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- Modpacks List -->
+                <ListBox Grid.Row="1" ItemsSource="{Binding AvailableModpacks}" 
+                         SelectedItem="{Binding CurrentView}"
+                         Background="Transparent" BorderThickness="0" 
+                         HorizontalContentAlignment="Stretch"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Bd" Background="Transparent" 
+                                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" 
+                                                Padding="0">
+                                            <ContentPresenter />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#33FFFFFF"/>
+                                                <Setter TargetName="Bd" Property="BorderBrush" Value="#4CAF50"/>
+                                                <Setter TargetName="Bd" Property="BorderThickness" Value="3,0,0,1"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#22FFFFFF"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.NavigateToModpackCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                    Margin="0" Padding="12,14" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="Transparent" Padding="{TemplateBinding Padding}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <!-- Icon container -->
+                                                <Grid Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                    <!-- Default icon (CubeOutline) -->
+                                                    <materialDesign:PackIcon Kind="CubeOutline" Width="20" Height="20" Foreground="#A0D080" 
+                                                                             Visibility="{Binding DefaultIconVisibility}" VerticalAlignment="Center"/>
+                                                    <!-- Custom icon (Image) -->
+                                                    <Image Source="{Binding CustomIconSource}" Width="20" Height="20" Stretch="Uniform" 
+                                                           Visibility="{Binding CustomIconVisibility}" VerticalAlignment="Center"/>
+                                                </Grid>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding CustomTitle}" Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI" 
+                                                               FontWeight="Bold" FontSize="12" TextWrapping="Wrap" TextAlignment="Left"/>
+                                                    <TextBlock Text="{Binding CustomVersion}" Visibility="{Binding VersionListVisibility}" Foreground="{DynamicResource TextBrush}" Opacity="0.55" FontFamily="Segoe UI" 
+                                                               FontSize="10" Margin="0,2,0,0" TextAlignment="Left" TextTrimming="CharacterEllipsis"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Botón Consola -->
+                <Button Grid.Row="2" Command="{Binding NavigateToConsoleCommand}" 
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                        Margin="0" Padding="0" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="Transparent" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="15,12">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Console" Width="20" Height="20" Foreground="{DynamicResource TextBrush}" Opacity="0.8" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="CONSOLA" Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#33FFFFFF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- Botón Ajustes -->
+                <Button Grid.Row="3" Command="{Binding NavigateToSettingsCommand}" 
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                        Margin="0" Padding="0" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="Transparent" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="15,12">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Tune" Width="20" Height="20" Foreground="{DynamicResource TextBrush}" Opacity="0.8" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="AJUSTES" Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#33FFFFFF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- Perfil del Jugador -->
+                <Border Grid.Row="4" Background="Transparent" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10,12" Cursor="Hand">
+                    <Border.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateToSkinsCommand}" />
+                    </Border.InputBindings>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Cara del jugador reducida -->
+                        <Border Width="32" Height="32" CornerRadius="4" Background="{DynamicResource BorderBrush}" Margin="0,0,10,0">
+                            <Grid>
+                                <Image Source="{Binding PlayerFace}" Stretch="Uniform" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Nombre y Estado -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentAccountName}" FontSize="13" Foreground="{DynamicResource TextBrush}" FontFamily="Arial" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="Offline" FontSize="11" Foreground="{DynamicResource TextBrush}" Opacity="0.7"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Créditos -->
+                <TextBlock Grid.Row="5" Text="{Binding y}" FontSize="9" Foreground="{DynamicResource TextBrush}" Opacity="0.4" TextWrapping="Wrap" Margin="10,5,10,10" TextAlignment="Center" LineHeight="12"/>
+            </Grid>
+        </Border>
+
+        <!-- COLUMNA 1: Centro Dinámico (El Contenido) -->
+        <Border Grid.Column="1" Background="Transparent">
+            <ContentControl Content="{Binding CurrentView}" />
+        </Border>
+    </Grid>
+</Window>

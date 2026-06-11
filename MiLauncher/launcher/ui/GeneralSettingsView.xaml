@@ -1,0 +1,868 @@
+<UserControl x:Class="MiLauncher.launcher.ui.GeneralSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:global="clr-namespace:MiLauncher.launcher.ui.pages.global"
+             xmlns:tools="clr-namespace:MiLauncher.launcher.tools"
+             Background="{DynamicResource WindowBrush}">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <tools:InvertedBooleanConverter x:Key="InvertedBooleanConverter"/>
+        <tools:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
+        <!-- Plantillas de Vistas (Pages) -->
+        <DataTemplate DataType="{x:Type global:LauncherPageViewModel}">
+            <StackPanel Margin="20">
+                <TextBlock Text="{Binding Description}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" Margin="0,0,0,20" FontSize="13"/>
+                
+                <!-- Directorios del Launcher -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Directorios del Launcher" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                        
+                        <!-- Carpeta de Instancias -->
+                        <TextBlock Text="Carpeta de Instancias" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,5,0,2"/>
+                        <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="1" SnapsToDevicePixels="True" Margin="0,0,0,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding InstancesFolder}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="10,8" VerticalContentAlignment="Center" FontSize="13"/>
+                                
+                                <Border Grid.Column="1" Width="1" Background="{DynamicResource BorderBrush}" Margin="0,4"/>
+                                <Button Grid.Column="2" Command="{Binding BrowseInstancesCommand}" Background="Transparent" BorderThickness="0" Width="36" Height="32" Padding="0" Cursor="Hand" ToolTip="Buscar Carpeta">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnBorder" Background="Transparent" CornerRadius="0">
+                                                <materialDesign:PackIcon Kind="FolderSearchOutline" Width="18" Height="18" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnBorder" Property="Background" Value="#3D3D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                
+                                <Border Grid.Column="3" Width="1" Background="{DynamicResource BorderBrush}" Margin="0,4"/>
+                                <Button Grid.Column="4" Command="{Binding OpenInstancesCommand}" Background="Transparent" BorderThickness="0" Width="36" Height="32" Padding="0" Cursor="Hand" ToolTip="Abrir en el Explorador">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnBorder" Background="Transparent" CornerRadius="0,5,5,0">
+                                                <materialDesign:PackIcon Kind="FolderOpenOutline" Width="18" Height="18" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnBorder" Property="Background" Value="#3D3D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- Carpeta de Íconos -->
+                        <TextBlock Text="Carpeta de Íconos" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,5,0,2"/>
+                        <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="1" SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding IconsFolder}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="10,8" VerticalContentAlignment="Center" FontSize="13"/>
+                                
+                                <Border Grid.Column="1" Width="1" Background="{DynamicResource BorderBrush}" Margin="0,4"/>
+                                <Button Grid.Column="2" Command="{Binding BrowseIconsCommand}" Background="Transparent" BorderThickness="0" Width="36" Height="32" Padding="0" Cursor="Hand" ToolTip="Buscar Carpeta">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnBorder" Background="Transparent" CornerRadius="0">
+                                                <materialDesign:PackIcon Kind="FolderSearchOutline" Width="18" Height="18" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnBorder" Property="Background" Value="#3D3D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                
+                                <Border Grid.Column="3" Width="1" Background="{DynamicResource BorderBrush}" Margin="0,4"/>
+                                <Button Grid.Column="4" Command="{Binding OpenIconsCommand}" Background="Transparent" BorderThickness="0" Width="36" Height="32" Padding="0" Cursor="Hand" ToolTip="Abrir en el Explorador">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnBorder" Background="Transparent" CornerRadius="0,5,5,0">
+                                                <materialDesign:PackIcon Kind="FolderOpenOutline" Width="18" Height="18" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnBorder" Property="Background" Value="#3D3D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Ventana de Juego y Minecraft -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Ventana de Juego y Minecraft" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                        
+                        <!-- Resolución -->
+                        <TextBlock Text="Resolución de Lanzamiento" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Ancho (px)" Foreground="{DynamicResource TextBrush}" Opacity="0.65" FontSize="11" Margin="0,0,0,4"/>
+                                <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="1">
+                                    <TextBox Text="{Binding ResolutionWidth}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,6" FontSize="13"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="×" Foreground="{DynamicResource TextBrush}" Opacity="0.65" FontSize="20" VerticalAlignment="Bottom" Margin="12,0,12,6"/>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Alto (px)" Foreground="{DynamicResource TextBrush}" Opacity="0.65" FontSize="11" Margin="0,0,0,4"/>
+                                <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="1">
+                                    <TextBox Text="{Binding ResolutionHeight}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,6" FontSize="13"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Opciones de Pantalla -->
+                        <WrapPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <CheckBox Content="Iniciar en pantalla completa" IsChecked="{Binding Fullscreen}" Foreground="{DynamicResource TextBrush}" Margin="0,0,25,10"/>
+                            <CheckBox Content="Iniciar juego maximizado" IsChecked="{Binding MaximizeWindow}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,10"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Comportamiento del Launcher -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Comportamiento del Launcher" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                        
+                        <TextBlock Text="Al iniciar el juego:" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,0,0,4"/>
+                        <ComboBox SelectedIndex="{Binding LauncherLaunchBehavior}" Margin="0,0,0,15">
+                            <ComboBoxItem Content="Mantener el launcher abierto"/>
+                            <ComboBoxItem Content="Cerrar el launcher tras abrir el juego"/>
+                            <ComboBoxItem Content="Ocultar el launcher y mostrar al salir del juego"/>
+                        </ComboBox>
+
+                        <CheckBox Content="Mostrar consola de depuración al iniciar el juego" IsChecked="{Binding ShowConsole}" Foreground="{DynamicResource TextBrush}" Margin="0,5,0,8"/>
+                        <CheckBox Content="Cerrar la consola automáticamente al salir del juego" IsChecked="{Binding CloseConsoleOnGameExit}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,8"/>
+                        <CheckBox Content="Cerrar el launcher automáticamente al salir del juego" IsChecked="{Binding CloseLauncherOnGameExit}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,8"/>
+                        <CheckBox Content="Modo Desarrollador (Permite editar configuraciones avanzadas de las instancias)" IsChecked="{Binding IsDeveloperMode}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,5"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Autoconexión al Servidor -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Autoconexión al Servidor" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <CheckBox Content="Conectarse automáticamente a un servidor al iniciar" IsChecked="{Binding AutoConnect}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,12"/>
+                        
+                        <Grid IsEnabled="{Binding AutoConnect}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="120"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Dirección del Servidor (IP / Host)" Foreground="{DynamicResource TextBrush}" Opacity="0.65" FontSize="11" Margin="0,0,0,4"/>
+                                <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="1">
+                                    <TextBox Text="{Binding ServerAddress}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,6" FontSize="13"/>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Puerto" Foreground="{DynamicResource TextBrush}" Opacity="0.65" FontSize="11" Margin="0,0,0,4"/>
+                                <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="1">
+                                    <TextBox Text="{Binding ServerPort}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,6" TextAlignment="Center" FontSize="13"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Comandos de Lanzamiento -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Comandos de Lanzamiento" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                        
+                        <TextBlock Text="Comando Pre-Lanzamiento" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,5,0,4"/>
+                        <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="1" Margin="0,0,0,15">
+                            <TextBox Text="{Binding PreLaunchCommand}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,6" FontSize="13" ToolTip="Ejecutar comando cmd antes de iniciar el juego (bloqueante)"/>
+                        </Border>
+
+                        <TextBlock Text="Comando Post-Cierre" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,5,0,4"/>
+                        <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="1">
+                            <TextBox Text="{Binding PostExitCommand}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,6" FontSize="13" ToolTip="Ejecutar comando cmd después de cerrar el juego"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Acciones Globales -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Acciones de Configuración" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,8"/>
+                        <TextBlock Text="Restablece todos los ajustes globales de directorios, juego, comandos y consola a los valores iniciales. Esto no afectará las cuentas registradas." Foreground="{DynamicResource TextBrush}" Opacity="0.65" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        <Button Command="{Binding ResetDefaultsCommand}" Background="Transparent" BorderBrush="#FF5555" BorderThickness="1.5" Foreground="#FF5555" HorizontalAlignment="Left" Padding="15,8" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="btnBorder" Background="Transparent" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <materialDesign:PackIcon Kind="SettingsBackupRestore" Width="18" Height="18" Foreground="#FF5555" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Restablecer Ajustes por Defecto" Foreground="#FF5555" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="btnBorder" Property="Background" Value="#33FF5555"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type global:JavaPageViewModel}">
+            <StackPanel Margin="20">
+                <TextBlock Text="{Binding Description}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" Margin="0,0,0,20" FontSize="13"/>
+                
+                <!-- Java Executable Section -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Ejecutable de Java" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                        
+                        <TextBlock Text="Ruta de Instalación Java" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,5,0,2"/>
+                        <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="1" SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding JavaPath}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="10,8" VerticalContentAlignment="Center" FontSize="13"/>
+                                
+                                <Border Grid.Column="1" Width="1" Background="{DynamicResource BorderBrush}" Margin="0,4"/>
+                                <Button Grid.Column="2" Command="{Binding AutoDetectCommand}" Background="Transparent" BorderThickness="0" Padding="10,0" Height="32" Cursor="Hand" ToolTip="Auto-detectar Java en el sistema">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnBorder" Background="Transparent" CornerRadius="0" Padding="8,0">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <materialDesign:PackIcon Kind="AutoFix" Width="16" Height="16" Foreground="{DynamicResource TextBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Auto-detectar" Foreground="{DynamicResource TextBrush}" FontSize="11" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnBorder" Property="Background" Value="#3D3D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                
+                                <Border Grid.Column="3" Width="1" Background="{DynamicResource BorderBrush}" Margin="0,4"/>
+                                <Button Grid.Column="4" Command="{Binding BrowseJavaCommand}" Background="Transparent" BorderThickness="0" Width="36" Height="32" Padding="0" Cursor="Hand" ToolTip="Buscar java.exe / javaw.exe">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnBorder" Background="Transparent" CornerRadius="0">
+                                                <materialDesign:PackIcon Kind="FileSearchOutline" Width="18" Height="18" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnBorder" Property="Background" Value="#3D3D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                
+                                <Border Grid.Column="5" Width="1" Background="{DynamicResource BorderBrush}" Margin="0,4"/>
+                                <Button Grid.Column="6" Command="{Binding OpenJavaFolderCommand}" Background="Transparent" BorderThickness="0" Width="36" Height="32" Padding="0" Cursor="Hand" ToolTip="Abrir Carpeta Contenedora">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="btnBorder" Background="Transparent" CornerRadius="0,5,5,0">
+                                                <materialDesign:PackIcon Kind="FolderOpenOutline" Width="18" Height="18" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="btnBorder" Property="Background" Value="#3D3D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Memory Settings -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Asignación de Memoria" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                        
+                        <!-- Min Memory -->
+                        <TextBlock Text="Memoria Mínima (MB)" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,5,0,4"/>
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider Minimum="512" Maximum="{Binding MaxMem}" Value="{Binding MinMem}" TickFrequency="512" IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                            <Border Grid.Column="1" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="1">
+                                <TextBox Text="{Binding MinMem}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,4" Width="70" TextAlignment="Center" VerticalAlignment="Center" FontSize="13"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- Max Memory -->
+                        <TextBlock Text="Memoria Máxima (MB)" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,5,0,4"/>
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider Minimum="1024" Maximum="16384" Value="{Binding MaxMem}" TickFrequency="1024" IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                            <Border Grid.Column="1" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="1">
+                                <TextBox Text="{Binding MaxMem}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,4" Width="70" TextAlignment="Center" VerticalAlignment="Center" FontSize="13"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- PermGen -->
+                        <TextBlock Text="PermGen (MB) [Solo para Java 7 o anterior]" Foreground="{DynamicResource TextBrush}" Opacity="0.8" FontSize="12" Margin="0,5,0,4"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Slider Minimum="64" Maximum="512" Value="{Binding PermGen}" TickFrequency="64" IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                            <Border Grid.Column="1" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="1">
+                                <TextBox Text="{Binding PermGen}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,4" Width="70" TextAlignment="Center" VerticalAlignment="Center" FontSize="13"/>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Java Arguments Section -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Argumentos de la JVM adicionales" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="1">
+                            <TextBox Text="{Binding JvmArgs}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,6" Height="80" TextWrapping="Wrap" AcceptsReturn="True" FontSize="13"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Wrapper Command Section -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Comando Wrapper (e.g. optirun, primusrun)" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="1">
+                            <TextBox Text="{Binding WrapperCommand}" Foreground="{DynamicResource TextBrush}" Background="Transparent" BorderThickness="0" Padding="8,6" FontSize="13"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type global:AccountListPageViewModel}">
+            <StackPanel Margin="20">
+                <TextBlock Text="{Binding Description}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" Margin="0,0,0,20"/>
+                
+                <!-- Agregar Cuenta Offline / ID Seguro -->
+                <TextBlock Text="Agregar Cuenta Offline / ID No-Premium Seguro" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,10,0,5"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                    <!-- Registro normal de Cuenta Offline -->
+                    <TextBox Text="{Binding NewAccountName, UpdateSourceTrigger=PropertyChanged}" Foreground="{DynamicResource TextBrush}" Background="{DynamicResource InputBrush}" Padding="8" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}" Width="180"/>
+                    <Button Command="{Binding AddOfflineAccountCommand}" Content="Agregar" Style="{StaticResource PremiumButton}" Margin="10,0,15,0" Padding="15,5" Background="#3C8527" Foreground="{DynamicResource TextBrush}"/>
+                    
+                    <!-- Separador vertical -->
+                    <Border Width="1" Background="{DynamicResource BorderBrush}" Margin="5,0,15,0"/>
+                    
+                    <!-- ID Seguro (Solo lectura) -->
+                    <TextBlock Text="Tu ID Seguro:" VerticalAlignment="Center" Foreground="{DynamicResource TextBrush}" Opacity="0.8" Margin="0,0,10,0" FontSize="12" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding SecureID, Mode=OneWay}" IsReadOnly="True" Foreground="{DynamicResource TextBrush}" Background="{DynamicResource InputBrush}" Padding="8" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}" Width="180" VerticalAlignment="Center" FontSize="12"/>
+                    
+                    <!-- Botón Copiar -->
+                    <Button Command="{Binding CopySecureIDCommand}" Style="{StaticResource PremiumButton}" Margin="10,0,5,0" Padding="10,5" Background="#3377AA" Foreground="{DynamicResource TextBrush}" ToolTip="Copiar ID al portapapeles">
+                        <materialDesign:PackIcon Kind="ContentCopy" Width="16" Height="16"/>
+                    </Button>
+                    
+                    <!-- Botón Reiniciar ID -->
+                    <Button Command="{Binding ResetSecureIDCommand}" Style="{StaticResource PremiumButton}" Margin="5,0,0,0" Padding="10,5" Background="#AA3333" Foreground="{DynamicResource TextBrush}" ToolTip="Reiniciar ID">
+                        <materialDesign:PackIcon Kind="Refresh" Width="16" Height="16"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Lista de Cuentas Offline -->
+                <TextBlock Text="Cuentas Registradas" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,10,0,5"/>
+                <ItemsControl ItemsSource="{Binding OfflineAccounts}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource PanelBrush}" Padding="10" Margin="0,0,0,10" CornerRadius="4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <materialDesign:PackIcon Kind="AccountOutline" Foreground="{DynamicResource TextBrush}" Opacity="0.6" Width="20" Height="20" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding}" Foreground="{DynamicResource TextBrush}" FontSize="14"/>
+                                    </StackPanel>
+                                    
+                                    <Button Grid.Column="2" Command="{Binding DataContext.SelectAccountCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"
+                                            Content="Seleccionar" Style="{StaticResource PremiumButton}" Background="#3377AA" Foreground="{DynamicResource TextBrush}" Padding="10,5" Margin="0,0,10,0"/>
+                                    
+                                    <Button Grid.Column="3" Command="{Binding DataContext.RemoveAccountCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"
+                                            Content="Eliminar" Style="{StaticResource PremiumButton}" Background="#AA3333" Foreground="{DynamicResource TextBrush}" Padding="10,5"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type global:AppearancePageViewModel}">
+            <StackPanel Margin="20">
+                <TextBlock Text="{Binding Description}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" Margin="0,0,0,20"/>
+                
+                <!-- Presets Rápidos -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,20" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Temas Predeterminados" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Command="{Binding PresetCommand}" CommandParameter="dark" Margin="0,0,10,0" ToolTip="Clásico Oscuro" BorderThickness="0" Background="Transparent" Padding="0" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate>
+                                        <Border Background="#1F1E1D" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="6" Padding="8,5" Width="100">
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Border Width="12" Height="12" CornerRadius="6" Background="#171615" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Oscuro" Foreground="{DynamicResource TextBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <Button Command="{Binding PresetCommand}" CommandParameter="midnight" Margin="0,0,10,0" ToolTip="Azul Medianoche" BorderThickness="0" Background="Transparent" Padding="0" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate>
+                                        <Border Background="#1C2237" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="6" Padding="8,5" Width="100">
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Border Width="12" Height="12" CornerRadius="6" Background="#0a0e1a" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Medianoche" Foreground="{DynamicResource TextBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <Button Command="{Binding PresetCommand}" CommandParameter="amoled" Margin="0,0,10,0" ToolTip="Negro Absoluto" BorderThickness="0" Background="Transparent" Padding="0" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate>
+                                        <Border Background="#1E1E1E" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="6" Padding="8,5" Width="100">
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Border Width="12" Height="12" CornerRadius="6" Background="#000000" Margin="0,0,8,0"/>
+                                                <TextBlock Text="AMOLED" Foreground="{DynamicResource TextBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <Button Command="{Binding PresetCommand}" CommandParameter="green" Margin="0,0,10,0" ToolTip="Verde Esmeralda" BorderThickness="0" Background="Transparent" Padding="0" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate>
+                                        <Border Background="#17241A" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="6" Padding="8,5" Width="100">
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Border Width="12" Height="12" CornerRadius="6" Background="#0d1a0f" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Esmeralda" Foreground="{DynamicResource TextBrush}" FontSize="12" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Panel de Personalización de Colores -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- COLOR PRIMARIO -->
+                    <Border Grid.Row="0" Grid.Column="0" Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Color Primario (Fondo)" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Border Width="24" Height="24" CornerRadius="12" BorderBrush="#555555" BorderThickness="1" Margin="0,0,8,0" VerticalAlignment="Center">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{Binding PrimaryColor}"/>
+                                        </Border.Background>
+                                    </Border>
+                                    <TextBox Text="{Binding PrimaryColorHex, UpdateSourceTrigger=PropertyChanged}" Foreground="{DynamicResource TextBrush}" Background="{DynamicResource InputBrush}" Padding="6,4" BorderThickness="0" Width="80" FontSize="12" TextAlignment="Center" FontWeight="SemiBold" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Sliders -->
+                            <StackPanel>
+                                <!-- Red -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="R" Foreground="#FF5555" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding PrimaryR}" Foreground="#FF5555" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding PrimaryR}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <!-- Green -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="G" Foreground="#55FF55" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding PrimaryG}" Foreground="#55FF55" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding PrimaryG}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <!-- Blue -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="B" Foreground="#5555FF" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding PrimaryB}" Foreground="#5555FF" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding PrimaryB}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- COLOR SECUNDARIO -->
+                    <Border Grid.Row="0" Grid.Column="2" Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Color Secundario (Paneles)" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Border Width="24" Height="24" CornerRadius="12" BorderBrush="#555555" BorderThickness="1" Margin="0,0,8,0" VerticalAlignment="Center">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{Binding SecondaryColor}"/>
+                                        </Border.Background>
+                                    </Border>
+                                    <TextBox Text="{Binding SecondaryColorHex, UpdateSourceTrigger=PropertyChanged}" Foreground="{DynamicResource TextBrush}" Background="{DynamicResource InputBrush}" Padding="6,4" BorderThickness="0" Width="80" FontSize="12" TextAlignment="Center" FontWeight="SemiBold" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Sliders -->
+                            <StackPanel>
+                                <!-- Red -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="R" Foreground="#FF5555" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding SecondaryR}" Foreground="#FF5555" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding SecondaryR}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <!-- Green -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="G" Foreground="#55FF55" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding SecondaryG}" Foreground="#55FF55" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding SecondaryG}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <!-- Blue -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="B" Foreground="#5555FF" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding SecondaryB}" Foreground="#5555FF" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding SecondaryB}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- COLOR DE BORDES -->
+                    <Border Grid.Row="2" Grid.Column="0" Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}" Margin="0,15,0,0">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Color de Bordes" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Border Width="24" Height="24" CornerRadius="12" BorderBrush="#555555" BorderThickness="1" Margin="0,0,8,0" VerticalAlignment="Center">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{Binding BorderColor}"/>
+                                        </Border.Background>
+                                    </Border>
+                                    <TextBox Text="{Binding BorderColorHex, UpdateSourceTrigger=PropertyChanged}" Foreground="{DynamicResource TextBrush}" Background="{DynamicResource InputBrush}" Padding="6,4" BorderThickness="0" Width="80" FontSize="12" TextAlignment="Center" FontWeight="SemiBold" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Sliders -->
+                            <StackPanel>
+                                <!-- Red -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="R" Foreground="#FF5555" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding BorderR}" Foreground="#FF5555" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding BorderR}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <!-- Green -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="G" Foreground="#55FF55" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding BorderG}" Foreground="#55FF55" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding BorderG}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <!-- Blue -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="B" Foreground="#5555FF" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding BorderB}" Foreground="#5555FF" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding BorderB}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- COLOR DE LETRAS -->
+                    <Border Grid.Row="2" Grid.Column="2" Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}" Margin="0,15,0,0">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Color de Letras (Texto)" Foreground="{DynamicResource TextBrush}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Border Width="24" Height="24" CornerRadius="12" BorderBrush="#555555" BorderThickness="1" Margin="0,0,8,0" VerticalAlignment="Center">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{Binding TextColor}"/>
+                                        </Border.Background>
+                                    </Border>
+                                    <TextBox Text="{Binding TextColorHex, UpdateSourceTrigger=PropertyChanged}" Foreground="{DynamicResource TextBrush}" Background="{DynamicResource InputBrush}" Padding="6,4" BorderThickness="0" Width="80" FontSize="12" TextAlignment="Center" FontWeight="SemiBold" VerticalContentAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Sliders -->
+                            <StackPanel>
+                                <!-- Red -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="R" Foreground="#FF5555" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding TextR}" Foreground="#FF5555" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding TextR}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <!-- Green -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="G" Foreground="#55FF55" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding TextG}" Foreground="#55FF55" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding TextG}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <!-- Blue -->
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="35"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="B" Foreground="#5555FF" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Slider Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding TextB}" Foreground="#5555FF" Margin="5,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding TextB}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type global:SystemPageViewModel}">
+            <StackPanel Margin="20">
+                <TextBlock Text="{Binding Description}" Foreground="{DynamicResource TextBrush}" Opacity="0.65" Margin="0,0,0,20" FontSize="13"/>
+                
+                <!-- Whitelist & Updates Panel -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="20" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}" Margin="0,0,0,15">
+                    <StackPanel>
+                        <TextBlock Text="Actualizaciones del Sistema y Whitelist" Foreground="{DynamicResource TextBrush}" FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
+                        <TextBlock Text="Sincroniza y descarga automáticamente la lista de modpacks permitidos (Whitelist), imágenes oficiales, metadatos y configuraciones del servidor desde el repositorio remoto de GitHub." Foreground="{DynamicResource TextBrush}" Opacity="0.65" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,20"/>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <!-- Buscar Actualizaciones Button -->
+                            <Button Command="{Binding CheckUpdatesCommand}" Style="{StaticResource PremiumButton}" Background="#3377AA" Foreground="{DynamicResource TextBrush}" Padding="15,8" Margin="0,0,15,0" IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBooleanConverter}}" Cursor="Hand">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="CloudDownloadOutline" Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Buscar Actualizaciones" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <!-- Recargar Whitelist Button -->
+                            <Button Command="{Binding ReloadWhitelistCommand}" Style="{StaticResource PremiumButton}" Background="#3C8527" Foreground="{DynamicResource TextBrush}" Padding="15,8" IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBooleanConverter}}" Cursor="Hand">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Refresh" Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Recargar Whitelist" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Status Progress Panel -->
+                <Border Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="15" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}" Margin="0,0,0,10"
+                        Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TextBrush}" FontSize="13" Margin="0,0,0,8"/>
+                        <ProgressBar Value="{Binding ProgressValue}" Height="8" Background="#111111" Foreground="#3C8527" BorderThickness="0" Maximum="100"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Status text when idle -->
+                <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TextBrush}" Opacity="0.5" FontSize="12" Margin="5,5,0,0"
+                           Visibility="{Binding IsBusy, Converter={StaticResource InvertedBooleanToVisibilityConverter}}"/>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="20">
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{Binding DataContext.NavigateHomeCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
+                        Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextBrush}" Cursor="Hand" Margin="0,0,20,0" Padding="0">
+                    <materialDesign:PackIcon Kind="ArrowLeft" Width="25" Height="25"/>
+                </Button>
+                <TextBlock Text="AJUSTES GLOBALES" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Body -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/> <!-- Sidebar de Pages -->
+                <ColumnDefinition Width="*"/>   <!-- Contenido -->
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar -->
+            <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+                <ListBox ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage}" 
+                         Background="Transparent" BorderThickness="0" Margin="0,10">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <materialDesign:PackIcon Kind="{Binding Icon}" Width="20" Height="20" Foreground="{DynamicResource TextBrush}" Opacity="0.8" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding DisplayName}" Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI" FontSize="14" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+
+            <!-- Contenido Dinámico -->
+            <Border Grid.Column="1" Background="{DynamicResource WindowBrush}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Border Background="{DynamicResource PanelBrush}" Padding="20,10">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="{Binding SelectedPage.Icon}" Width="24" Height="24" Foreground="{DynamicResource TextBrush}" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding SelectedPage.DisplayName}" FontSize="18" Foreground="{DynamicResource TextBrush}" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ContentControl Content="{Binding SelectedPage}" />
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

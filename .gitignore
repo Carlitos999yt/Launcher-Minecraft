@@ -1,0 +1,42 @@
+# Visual Studio / .NET Core
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# PrismLauncher C++ subfolder
+PrismLauncher/
+
+# Large binaries & images in root or subdirectories
+CustomSkinLoader_Fabric-14.28.jar
+imagen de testeo.png
+MiLauncher/java17.zip
+MiLauncher/test.zip
+MiLauncher/jdk-17.0.11+9-jre/
+
+# Build outputs
+*.exe
+*.dll
+*.pdb
+*.msi
+*.zip
+*.rar
+
+# Logs
+*.log
+launcher_log.txt
+
+# Temp/Cache files
+.gradle/
+build/
+.settings/
+.project
+.classpath
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini

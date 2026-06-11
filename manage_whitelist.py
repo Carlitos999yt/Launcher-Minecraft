@@ -175,14 +175,44 @@ def import_mrpack(mrpack_path, modpack_id):
             else:
                 os.remove(item_path)
                 
+        # Construir mapeo de archivos de mods a sus URLs de descarga
+        mod_urls = {}
+        for file_info in index_data.get("files", []):
+            path = file_info.get("path")
+            downloads = file_info.get("downloads", [])
+            if downloads:
+                mod_urls[os.path.basename(path)] = downloads[0]
+
         # Copiar mods
         dest_mods_dir = os.path.join(REPO_PATH, "mods")
         os.makedirs(dest_mods_dir, exist_ok=True)
         src_mods_dir = os.path.join(temp_dir, "mods")
+        external_mods = []
         if os.path.exists(src_mods_dir):
             for file in os.listdir(src_mods_dir):
-                shutil.copy2(os.path.join(src_mods_dir, file), os.path.join(dest_mods_dir, file))
+                src_file = os.path.join(src_mods_dir, file)
+                file_size = os.path.getsize(src_file)
+                if file_size > 40 * 1024 * 1024:
+                    url = mod_urls.get(file, "")
+                    if url:
+                        external_mods.append({
+                            "filename": file,
+                            "url": url
+                        })
+                        print(f"Mod {file} es muy grande ({file_size / (1024*1024):.2f}MB). Registrado como mod externo.")
+                        continue
+                shutil.copy2(src_file, os.path.join(dest_mods_dir, file))
                 
+        # Guardar external_mods.json en la raíz de la rama si existen mods grandes
+        ext_mods_path = os.path.join(REPO_PATH, "external_mods.json")
+        if external_mods:
+            with open(ext_mods_path, "w", encoding="utf-8") as f:
+                json.dump(external_mods, f, indent=2, ensure_ascii=False)
+            print(f"Creado external_mods.json con {len(external_mods)} mods.")
+        else:
+            if os.path.exists(ext_mods_path):
+                os.remove(ext_mods_path)
+
         # Copiar configuraciones y otros archivos de Minecraft (config/, shaderpacks/, etc.)
         for folder in ["config", "shaderpacks", "resourcepacks"]:
             src_folder = os.path.join(temp_dir, folder)
@@ -200,6 +230,7 @@ def import_mrpack(mrpack_path, modpack_id):
         # Crear config-modpack.json
         config_data = {
             "name": modpack_name,
+            "version": modpack_version,
             "gameVersion": game_version,
             "modLoader": mod_loader,
             "loaderVersion": loader_version,

@@ -10,6 +10,8 @@
 # PrismLauncher C++ subfolder
 PrismLauncher/
 Modpack-Servers/
+modpacks/
+__pycache__/
 
 # Large binaries & images in root or subdirectories
 CustomSkinLoader_Fabric-14.28.jar

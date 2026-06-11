@@ -89,14 +89,14 @@ namespace MiLauncher.launcher.minecraft
 
         public static async Task<List<WhitelistedModpack>> GetWhitelistAsync()
         {
-            // Intentar leer whitelist.json de la rama main del repositorio de modpacks
-            string url = $"https://raw.githubusercontent.com/{Username}/{ModpacksRepo}/main/whitelist.json";
+            // Intentar leer whitelist.json de la rama whitelist del repositorio de modpacks
+            string url = $"https://raw.githubusercontent.com/{Username}/{ModpacksRepo}/whitelist/whitelist.json";
             
             // Si el repositorio es privado, raw.githubusercontent.com requiere token en la URL, 
             // por lo que usamos la API de contenidos de GitHub que soporta headers de autorización.
             if (!string.IsNullOrEmpty(PersonalAccessToken))
             {
-                url = $"https://api.github.com/repos/{Username}/{ModpacksRepo}/contents/whitelist.json?ref=main";
+                url = $"https://api.github.com/repos/{Username}/{ModpacksRepo}/contents/whitelist.json?ref=whitelist";
             }
 
             try

@@ -13,16 +13,29 @@ def run_git(args, cwd=REPO_PATH):
     result = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True)
     return result
 
-def ensure_branch_clean(branch_name):
+def ensure_branch_clean(branch_name, orphan=False):
     # Asegurar que estamos en el branch limpio y actualizado
     run_git(["checkout", "main"])
     run_git(["pull", "origin", "main"])
     
-    # Borrar la rama local si existe para evitar conflictos de historial
-    run_git(["branch", "-D", branch_name])
-    
-    # Crear rama huérfana limpia para no arrastrar historial ni archivos viejos
-    run_git(["checkout", "--orphan", branch_name])
+    if orphan:
+        # Borrar la rama local si existe para evitar conflictos de historial
+        run_git(["branch", "-D", branch_name])
+        # Crear rama huérfana limpia para no arrastrar historial ni archivos viejos
+        run_git(["checkout", "--orphan", branch_name])
+    else:
+        # Rama normal, conservar historial
+        branches_res = run_git(["branch", "-a"])
+        exists_local = branch_name in branches_res.stdout
+        exists_remote = f"remotes/origin/{branch_name}" in branches_res.stdout
+        
+        if exists_local:
+            run_git(["checkout", branch_name])
+            run_git(["pull", "origin", branch_name])
+        elif exists_remote:
+            run_git(["checkout", "-b", branch_name, f"origin/{branch_name}"])
+        else:
+            run_git(["checkout", "-b", branch_name])
 
 def load_json_file(branch, filename, default_val):
     # Guardamos la rama actual para regresar
@@ -156,7 +169,7 @@ def import_mrpack(mrpack_path, modpack_id):
             shutil.rmtree(overrides_dir)
             
         # Preparar archivos para la rama
-        ensure_branch_clean(modpack_id)
+        ensure_branch_clean(modpack_id, orphan=True)
         
         # Limpiar directorio de la rama (excepto .git)
         for item in os.listdir(REPO_PATH):
